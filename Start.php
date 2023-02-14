@@ -62,6 +62,10 @@ class Start{
                 echo '-----------------------------------' . PHP_EOL;
                 $this->kisikIzbornik();
                 break;
+            case 3:
+                echo '-----------------------------------' . PHP_EOL;
+                $this->isporukaIzbornik();
+                break;
             case 4:
                 echo '-----------------------------------' . PHP_EOL;
                 $this->prikupIzbornik();
@@ -79,6 +83,275 @@ class Start{
                 $this->glavniIzbornik();
         }
     }
+
+    //___________________________ISPORUKA_____________________________
+
+    private function isporukaIzbornik()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         echo 'Deliveries menu' . PHP_EOL;
+         echo '1.Review' . PHP_EOL;
+         echo '2.Enter a new delivery' . PHP_EOL;
+         echo '3.Changing the existing delivery' . PHP_EOL;
+         echo '4.Deleting the existing delivery' . PHP_EOL;
+         echo '5.Return to the main menu' . PHP_EOL;
+         $this->odabirOpcijeIsporuka();
+     }
+
+     private function odabirOpcijeIsporuka()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         switch(Pomocno::rasponBroja('Choose an option: ',1,5))
+         {
+             case 1:
+                 echo '-----------------------------------' . PHP_EOL;
+                 $this->pregledIsporuke();
+                 break;
+             case 2:
+                 echo '-----------------------------------' . PHP_EOL;
+                 $this->unsoNoveIsporuke();
+                 break;
+             case 3:
+                 if(count($this->prikupi)===0)
+                 {
+                     
+                     echo 'There are no deliveries in the App!' . PHP_EOL;
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->isporukaIzbornik();
+                 }else
+                 {
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->promjenaIsporuke();
+                 }
+                 break;
+             case 4:
+                 if(count($this->prikupi)===0)
+                 {
+                     
+                     echo 'There are no deliveries in the App!' . PHP_EOL;
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->isporukaIzbornik();
+                 }else
+                 {
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->brisanjeIsporuke();
+                 }
+                 break;
+             case 5:
+                 //echo '-----------------------------------' . PHP_EOL;
+                 $this->glavniIzbornik();
+                 break;
+             default:
+                 echo '-----------------------------------' . PHP_EOL;
+                 $this->odabirOpcijeIsporuka();
+         }
+     }
+
+     private function promjenaIsporuke()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         $this->pregledIsporuke(false); // šaljem mu false kako mi nebi opet ucito izbornik
+         $rb = Pomocno::rasponBroja('Choose a delivery: ',1,count($this->isporuke) );
+         $rb--;
+         $this->isporuke[$rb]->datum = Pomocno::unosTeksta('Enter the new serial number of oxygen concentrator(' . 
+         $this->isporuke[$rb]->datum .'): ', // PRIKAZ STAROG NAZIVA
+         $this->isporuke[$rb]->datum); // slanje stare vrijednosti(drugog parametra) u unos teksta
+        
+         echo '-----------------------------------' . PHP_EOL;
+         $this->prikupIzbornik();
+     }
+ 
+     private function unsoNoveIsporuke()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         $o = new stdClass(); //obavezna deklaracija PHP-MANUAL!!
+         $o->datum = Pomocno::unosTeksta('Enter the date of delivery: dd.mm.yyy ');
+         
+         $this->pregledPacijenata(false); // treba dohvatiti od kojeg pacijenta se prikuplja
+         $rb = Pomocno::rasponBroja('Choose a patient: ',1,count($this->pacijenti) );
+         $rb--;
+         $o->pacijent = $this->pacijenti[$rb];
+ 
+         $this->pregledKisika(false);// treba dohvatiti koji kisik se prikuplja
+         $rb = Pomocno::rasponBroja('Choose a oxygen concentrator: ',1,count($this->koncentratoriKisika) );
+         $rb--;
+         $o->koncentratorKisika = $this->koncentratoriKisika[$rb];
+ 
+ 
+         echo '-----------------------------------' . PHP_EOL;
+ 
+         $this->isporuke[] = $o; // spremi u niz koji je deklariran u constructoru 
+         $this->isporukaIzbornik();//otvaram opet izbornik
+     }
+ 
+     private function pregledIsporuke($prikaziIzbornik=true)
+     {
+         
+         echo'Delivery review' . PHP_EOL;
+         $i=1;
+         foreach ($this->isporuke as $v) {         
+             echo $i++ . '. ' . $v->datum . 
+             ' (' . $v->pacijent->ime . ' ' . $v->pacijent->prezime  . ' | Serial number of oxygen concentrator: ' .
+             $v->koncentratorKisika->serijskiKod . ')' . PHP_EOL; // odma i poveca $i
+         }
+         
+         if($prikaziIzbornik) // saljem mu taj samo false pa ce ga ucitat
+         {
+             echo '-----------------------------------' . PHP_EOL;
+             $this->isporukaIzbornik();
+         }
+         
+     }
+ 
+     private function brisanjeIsporuke()
+     {
+         $this->pregledIsporuke(false); // šaljem mu false kako mi nebi opet ucito izbornik
+         $rb = Pomocno::rasponBroja('Choose a delivery: ',1,count($this->isporuke) );
+         $rb--;
+         if($this->dev) // za developere provjera podataka
+         {
+             echo 'Prije' . PHP_EOL;
+             print_r($this->isporuke);
+         }
+         array_splice($this->isporuke,$rb,1);// 1 znacida brisemo jedan element u arrayu
+         if($this->dev)
+         {
+             echo 'Poslije' . PHP_EOL;
+             print_r($this->isporuke);
+         }
+         $this->isporukaIzbornik();
+     }
+
+
+     //__________________________PRIKUP_________________________
+
+     private function prikupIzbornik()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         echo 'Collections menu' . PHP_EOL;
+         echo '1.Review' . PHP_EOL;
+         echo '2.Enter a new collection' . PHP_EOL;
+         echo '3.Changing the existing collection' . PHP_EOL;
+         echo '4.Deleting the existing collection' . PHP_EOL;
+         echo '5.Return to the main menu' . PHP_EOL;
+         $this->odabirOpcijePrikup();
+     }
+ 
+     private function odabirOpcijePrikup()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         switch(Pomocno::rasponBroja('Choose an option: ',1,5))
+         {
+             case 1:
+                 echo '-----------------------------------' . PHP_EOL;
+                 $this->pregledPrikupa();
+                 break;
+             case 2:
+                 echo '-----------------------------------' . PHP_EOL;
+                 $this->unsoNovogPrikupa();
+                 break;
+             case 3:
+                 if(count($this->prikupi)===0)
+                 {
+                     
+                     echo 'There are no collections in the App!' . PHP_EOL;
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->prikupIzbornik();
+                 }else
+                 {
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->promjenaPrikupa();
+                 }
+                 break;
+             case 4:
+                 if(count($this->prikupi)===0)
+                 {
+                     
+                     echo 'There are no collections in the App!' . PHP_EOL;
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->prikupIzbornik();
+                 }else
+                 {
+                     echo '-----------------------------------' . PHP_EOL;
+                     $this->brisanjePrikupa();
+                 }
+                 break;
+             case 5:
+                 //echo '-----------------------------------' . PHP_EOL;
+                 $this->glavniIzbornik();
+                 break;
+             default:
+                 echo '-----------------------------------' . PHP_EOL;
+                 $this->odabirOpcijePrikup();
+         }
+     }
+ 
+     private function promjenaPrikupa()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         $this->pregledPrikupa(false); // šaljem mu false kako mi nebi opet ucito izbornik
+         $rb = Pomocno::rasponBroja('Choose a collection: ',1,count($this->prikupi) );
+         $rb--;
+         $this->prikupi[$rb]->datum = Pomocno::unosTeksta('Enter the new serial number of oxygen concentrator(' . 
+         $this->prikupi[$rb]->datum .'): ', // PRIKAZ STAROG NAZIVA
+         $this->prikupi[$rb]->datum); // slanje stare vrijednosti(drugog parametra) u unos teksta
+        
+         echo '-----------------------------------' . PHP_EOL;
+         $this->prikupIzbornik();
+     }
+ 
+     private function unsoNovogPrikupa()//metode drzim privatnima a do njih cu doci preko constructora
+     {
+         $o = new stdClass(); //obavezna deklaracija PHP-MANUAL!!
+         $o->datum = Pomocno::unosTeksta('Enter the date of collection: dd.mm.yyy ');
+         
+         $this->pregledPacijenata(false); // treba dohvatiti od kojeg pacijenta se prikuplja
+         $rb = Pomocno::rasponBroja('Choose a patient: ',1,count($this->pacijenti) );
+         $rb--;
+         $o->pacijent = $this->pacijenti[$rb];
+ 
+         $this->pregledKisika(false);// treba dohvatiti koji kisik se prikuplja
+         $rb = Pomocno::rasponBroja('Choose a oxygen concentrator: ',1,count($this->koncentratoriKisika) );
+         $rb--;
+         $o->koncentratorKisika = $this->koncentratoriKisika[$rb];
+ 
+ 
+         echo '-----------------------------------' . PHP_EOL;
+ 
+         $this->prikupi[] = $o; // spremi u niz koji je deklariran u constructoru 
+         $this->prikupIzbornik();//otvaram opet izbornik
+     }
+ 
+     private function pregledPrikupa($prikaziIzbornik=true)
+     {
+         
+         echo'Collection review' . PHP_EOL;
+         $i=1;
+         foreach ($this->prikupi as $v) {         
+             echo $i++ . '. ' . $v->datum . 
+             ' (' . $v->pacijent->ime . ' ' . $v->pacijent->prezime  . ' | Serijski kod kisika: ' .
+             $v->koncentratorKisika->serijskiKod . ')' . PHP_EOL; // odma i poveca $i
+         }
+         
+         if($prikaziIzbornik) // saljem mu taj samo false pa ce ga ucitat
+         {
+             echo '-----------------------------------' . PHP_EOL;
+             $this->prikupIzbornik();
+         }
+         
+     }
+ 
+     private function brisanjePrikupa()
+     {
+         $this->pregledPrikupa(false); // šaljem mu false kako mi nebi opet ucito izbornik
+         $rb = Pomocno::rasponBroja('Choose a collection: ',1,count($this->prikupi) );
+         $rb--;
+         if($this->dev) // za developere provjera podataka
+         {
+             echo 'Prije' . PHP_EOL;
+             print_r($this->prikupi);
+         }
+         array_splice($this->prikupi,$rb,1);// 1 znacida brisemo jedan element u arrayu
+         if($this->dev)
+         {
+             echo 'Poslije' . PHP_EOL;
+             print_r($this->prikupi);
+         }
+         $this->prikupIzbornik();
+     }
 
     //___________________________________STANJE SKLADISTA_________________________
 
@@ -219,7 +492,7 @@ class Start{
         $this->pacijenti[$rb]->telefon = pomocno::unosTeksta('Enter the new telephone number(' . 
         $this->pacijenti[$rb]->telefon . '): ', 
         $this->pacijenti[$rb]->telefon);
-        $this->pacijenti[$rb]->datumrodenja = pomocno::unosTeksta('Enter the new birth date of patient(' . 
+        $this->pacijenti[$rb]->datumrodenja = pomocno::unosTeksta('Enter the new birth date of patient( dd.mm.yyy '  . 
         $this->pacijenti[$rb]->datumrodenja . '): ', 
         $this->pacijenti[$rb]->datumrodenja);
         $this->pacijenti[$rb]->adress = pomocno::unosTeksta('Enter the new adress of patient(' . 
@@ -388,139 +661,7 @@ class Start{
         
     }
 
-    //__________________________PRIKUP_________________________
-
-    private function prikupIzbornik()//metode drzim privatnima a do njih cu doci preko constructora
-    {
-        echo 'Collections menu' . PHP_EOL;
-        echo '1.Review' . PHP_EOL;
-        echo '2.Enter a new collection' . PHP_EOL;
-        echo '3.Changing the existing collection' . PHP_EOL;
-        echo '4.Deleting the existing collection' . PHP_EOL;
-        echo '5.Return to the main menu' . PHP_EOL;
-        $this->odabirOpcijePrikup();
-    }
-
-    private function odabirOpcijePrikup()//metode drzim privatnima a do njih cu doci preko constructora
-    {
-        switch(Pomocno::rasponBroja('Choose an option: ',1,5))
-        {
-            case 1:
-                echo '-----------------------------------' . PHP_EOL;
-                $this->pregledPrikupa();
-                break;
-            case 2:
-                echo '-----------------------------------' . PHP_EOL;
-                $this->unsoNovogPrikupa();
-                break;
-            case 3:
-                if(count($this->prikupi)===0)
-                {
-                    
-                    echo 'There are no collections in the App!' . PHP_EOL;
-                    echo '-----------------------------------' . PHP_EOL;
-                    $this->prikupIzbornik();
-                }else
-                {
-                    echo '-----------------------------------' . PHP_EOL;
-                    $this->promjenaPrikupa();
-                }
-                break;
-            case 4:
-                if(count($this->prikupi)===0)
-                {
-                    
-                    echo 'There are no collections in the App!' . PHP_EOL;
-                    echo '-----------------------------------' . PHP_EOL;
-                    $this->prikupIzbornik();
-                }else
-                {
-                    echo '-----------------------------------' . PHP_EOL;
-                    $this->brisanjePrikupa();
-                }
-                break;
-            case 5:
-                //echo '-----------------------------------' . PHP_EOL;
-                $this->glavniIzbornik();
-                break;
-            default:
-                echo '-----------------------------------' . PHP_EOL;
-                $this->odabirOpcijePrikup();
-        }
-    }
-
-    private function promjenaPrikupa()//metode drzim privatnima a do njih cu doci preko constructora
-    {
-        $this->pregledPrikupa(false); // šaljem mu false kako mi nebi opet ucito izbornik
-        $rb = Pomocno::rasponBroja('Choose a collection: ',1,count($this->prikupi) );
-        $rb--;
-        $this->prikupi[$rb]->datum = Pomocno::unosTeksta('Enter the new serial number of oxygen concentrator(' . 
-        $this->prikupi[$rb]->datum .'): ', // PRIKAZ STAROG NAZIVA
-        $this->prikupi[$rb]->datum); // slanje stare vrijednosti(drugog parametra) u unos teksta
-       
-        echo '-----------------------------------' . PHP_EOL;
-        $this->prikupIzbornik();
-    }
-
-    private function unsoNovogPrikupa()//metode drzim privatnima a do njih cu doci preko constructora
-    {
-        $o = new stdClass(); //obavezna deklaracija PHP-MANUAL!!
-        $o->datum = Pomocno::unosTeksta('Enter the date of collection: ');
-        
-        $this->pregledPacijenata(false); // treba dohvatiti od kojeg pacijenta se prikuplja
-        $rb = Pomocno::rasponBroja('Choose a patient: ',1,count($this->pacijenti) );
-        $rb--;
-        $o->pacijent = $this->pacijenti[$rb];
-
-        $this->pregledKisika(false);// treba dohvatiti koji kisik se prikuplja
-        $rb = Pomocno::rasponBroja('Choose a oxygen concentrator: ',1,count($this->koncentratoriKisika) );
-        $rb--;
-        $o->koncentratorKisika = $this->koncentratoriKisika[$rb];
-
-
-        echo '-----------------------------------' . PHP_EOL;
-
-        $this->prikupi[] = $o; // spremi u niz koji je deklariran u constructoru 
-        $this->prikupIzbornik();//otvaram opet izbornik
-    }
-
-    private function pregledPrikupa($prikaziIzbornik=true)
-    {
-        
-        echo'Collection review' . PHP_EOL;
-        $i=1;
-        foreach ($this->prikupi as $v) {         
-            echo $i++ . '. ' . $v->datum . 
-            ' (' . $v->pacijent->ime . ' ' . $v->pacijent->prezime  . ' | Serijski kod kisika: ' .
-            $v->koncentratorKisika->serijskiKod . ')' . PHP_EOL; // odma i poveca $i
-        }
-        
-        if($prikaziIzbornik) // saljem mu taj samo false pa ce ga ucitat
-        {
-            echo '-----------------------------------' . PHP_EOL;
-            $this->prikupIzbornik();
-        }
-        
-    }
-
-    private function brisanjePrikupa()
-    {
-        $this->pregledPrikupa(false); // šaljem mu false kako mi nebi opet ucito izbornik
-        $rb = Pomocno::rasponBroja('Choose a collection: ',1,count($this->prikupi) );
-        $rb--;
-        if($this->dev) // za developere provjera podataka
-        {
-            echo 'Prije' . PHP_EOL;
-            print_r($this->prikupi);
-        }
-        array_splice($this->prikupi,$rb,1);// 1 znacida brisemo jedan element u arrayu
-        if($this->dev)
-        {
-            echo 'Poslije' . PHP_EOL;
-            print_r($this->prikupi);
-        }
-        $this->prikupIzbornik();
-    }
+   
 
 
     private function testPodaci() // ubacivanje test podataka
